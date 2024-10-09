@@ -35,7 +35,7 @@ jobs:
       - name: Wait until the application is up
         run: npx wait-on http://localhost:3000
 
-      # Run tests
+      # Run test
       - name: Run tests
         env:
           TEST_USERNAME: ${{secrets.TEST_USERNAME}}
