@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import dotenv from 'dotenv';
+
 
 test.describe('Front-end tests', () => {
 
@@ -72,8 +74,87 @@ test.describe('Front-end tests', () => {
 
 
     });
-    
-  });
 
+  });
 });
 
+dotenv.config(); // Laddar miljövariabler från .env-fil
+const BASE_URL = process.env.BASE_URL || "http://localhost:3000"; // Fallback
+
+test.describe('Backend tests', () => {
+  let tokenValue: string;
+
+  test.beforeAll('Test case LogInGetToken', async ({ request }) => {
+    const respToken = await request.post(`${BASE_URL}/api/login`, { // Använd BASE_URL
+      data: {
+        username: "tester01",
+        password: "GteteqbQQgSr88SwNExUQv2ydb7xuf8c"
+      }
+    });
+
+    expect(respToken.ok()).toBeTruthy(); // Kontrollera att inloggningen var lyckad
+    tokenValue = (await respToken.json()).token;
+  });
+
+  test('Test case 01 - Hämta alla rum', async ({ request }) => {
+    const respRooms = await request.get("http://localhost:3000/api/rooms", {
+      headers: {
+        "X-user-auth": JSON.stringify({
+          username: "tester01",
+          token: tokenValue
+        })
+      },
+    });
+
+    expect(respRooms.ok()).toBeTruthy();
+    expect(respRooms.status()).toBe(200);
+    const rooms = await respRooms.json();
+    expect(Array.isArray(rooms)).toBe(true);
+
+    rooms.forEach(room => {
+      expect(room).toHaveProperty('id');
+      expect(room).toHaveProperty('created');
+      expect(room).toHaveProperty('category');
+      expect(room).toHaveProperty('floor');
+      expect(room).toHaveProperty('number');
+      expect(room).toHaveProperty('available');
+      expect(room).toHaveProperty('price');
+      expect(room).toHaveProperty('features');
+      expect(Array.isArray(room.features)).toBe(true);
+    });
+  });
+
+  test('Test case 03 - Get all clients', async ({ request }) => {
+    const respRooms = await request.get(`${BASE_URL}/api/clients`, {
+      headers: {
+        "X-user-auth": JSON.stringify({
+          username: "tester01",
+          token: tokenValue
+        })
+      },
+    });
+
+    console.log(await respRooms.json())
+    const rooms = await respRooms.json();
+    expect(await respRooms.ok());
+  });
+
+  test('Test case 04 - Create Client', async ({ request }) => {
+    const response = await request.post(`${BASE_URL}/api/client/new`, {
+      headers: {
+        'X-user-auth': JSON.stringify({
+          username: 'tester01',
+          token: tokenValue
+        }),
+        'Content-Type': 'application/json'
+      },
+      data: {
+        "name": "Alex sixten",
+        "email": "alex.sixten@hotmail.se",
+        "telephone": "1234567"
+      }
+
+    });
+    expect(response.ok()).toBeTruthy();
+  });
+});
