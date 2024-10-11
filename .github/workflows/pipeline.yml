@@ -1,0 +1,56 @@
+name: GitHub Actions Tester Hotel App
+
+on:
+  push:
+    branches:
+      - main
+      - gh-actions
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  Hotel-App-tests:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Check out repository code
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      # Step 2: Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Step 3: Install Playwright
+      - name: Install Playwright
+        run: npx playwright install
+
+      # Step 4: Pull docker image
+      - name: Pull docker image
+        run: docker pull rasilva1986/my-vue-app:v1
+
+      # Step 5: Start application
+      - name: Start application
+        run: docker run --name hotelapp -d -p 3000:3000 rasilva1986/my-vue-app:v1
+
+      # Step 6: Wait for application to start
+      - name: Wait for application to start
+        run: npx wait-on http://localhost:3000/
+
+      # Step 7: Run tests
+      - name: Run tests
+        env:
+          TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+        run: npm run run-tests
+
+      # Step 8: Save test result as artifact
+      - name: Save test result as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: ./playwright-report
+
+      # Step 9: Terminate application
+      - name: Terminate application
+        run: docker stop hotelapp
