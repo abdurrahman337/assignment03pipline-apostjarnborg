@@ -79,7 +79,7 @@ test.describe('Front-end tests', () => {
 });
 
 dotenv.config(); // Laddar miljövariabler från .env-fil
-const BASE_URL = process.env.BASE_URL || "http://localhost:3000"; // Fallback
+const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
 test.describe('Backend tests', () => {
   let tokenValue: string;
@@ -87,8 +87,8 @@ test.describe('Backend tests', () => {
   test.beforeAll('Test case LogInGetToken', async ({ request }) => {
     const respToken = await request.post(`${BASE_URL}/api/login`, { // Använd BASE_URL
       data: {
-        username: "tester01",
-        password: "GteteqbQQgSr88SwNExUQv2ydb7xuf8c"
+        username: `${process.env.TEST_USERNAME}`,
+        password: `${process.env.TEST_PASSWORD}`
       }
     });
 
@@ -124,7 +124,7 @@ test.describe('Backend tests', () => {
     });
   });
 
-  test('Test case 03 - Get all clients', async ({ request }) => {
+  test('Test case 02 - Get all clients', async ({ request }) => {
     const respRooms = await request.get(`${BASE_URL}/api/clients`, {
       headers: {
         "X-user-auth": JSON.stringify({
@@ -139,7 +139,7 @@ test.describe('Backend tests', () => {
     expect(await respRooms.ok());
   });
 
-  test('Test case 04 - Create Client', async ({ request }) => {
+  test('Test case 03 - Create Client', async ({ request }) => {
     const response = await request.post(`${BASE_URL}/api/client/new`, {
       headers: {
         'X-user-auth': JSON.stringify({
